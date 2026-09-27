@@ -4,4 +4,4 @@ You do this by typing the below lines into a Comand-Line Interface like the Linu
 
 > python3 -m venv .venv
 
-<em>You can actually use any name instead of *.venv* but to avoid confusion, I recommend using *.venv*</em>
+<em>You can actually use any name instead of </em>.venv<em> but to avoid confusion, I recommend using </em>.venv<em></em>
