@@ -115,10 +115,11 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inID=0, inPhysics={}):
+	def __init__(self, inPhysics={}):
 
 		# ID
-		self.id = inID
+		## regular id is set to 0 as the characterClass is not meant to be used standalone
+		self.id = 0
 		## Ch for character
 		self.objID = "Ch"
 
