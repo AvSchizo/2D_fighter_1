@@ -19,6 +19,7 @@ from savePreferences import savePreferences
 # default preferences here
 defaultPreferences = {
 	"screenSizeScale": (9/16),
+	"playerWithControllerPriority": 1,
 }
 
 #
@@ -334,6 +335,12 @@ if __name__ != "__main__":
 timeGrotched = 0
 lastGrotch = pygame.time.get_ticks()
 while globals["running"]:
+
+	# will count the time since last frame, add it to counter
+	# for however many ticks worth of time is in counter:
+	# repeat game update that many times
+
+	# this is to keep a non framerate-dependant fighting game "frame" system
 
 	timeGrotched += pygame.time.get_ticks() - lastGrotch
 

@@ -49,3 +49,7 @@ Fear not, this is intentional and it will appear with the default preferences up
 #### screenSizeScale:
 
 The larger the number, the larger the window will be on the screen.
+
+#### playerWithControllerPriority:
+
+If there's only one controller connected, whoever this number is pointing to is controlled by the controller by default.
