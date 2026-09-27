@@ -40,3 +40,8 @@ The game is now completely set up, to play the game, have the virtual environmen
 Once you're done playing, type the line below and you're done.
 
 > deactivate
+
+## Preferences
+
+You may notice there is no preferences.json to start.
+Fear not, this is intentional and it will appear with the default preferences upon first starting up the game.
