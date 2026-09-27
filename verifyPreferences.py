@@ -1,6 +1,6 @@
 import json
 
-def verifyGamefiles(default):
+def verifyPreferences(default):
 
 	blankDict = {}
 
