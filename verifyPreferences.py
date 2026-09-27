@@ -23,4 +23,4 @@ def verifyPreferences(default):
 
 
 if __name__ == "__main__":
-	verifyGamefiles({})
+	verifyPreferences({})
