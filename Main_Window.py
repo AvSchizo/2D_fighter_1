@@ -174,8 +174,12 @@ class cameraClass():
 #                                                         #
 ###########################################################
 def mainLoop():
-	# FRAME DUTIES
 
+	########################################
+	#                                      #
+	#             FRAME DUTIES             #
+	#                                      #
+	########################################
 	globals["currentFrame"] += 1
 
 	# pygame events
@@ -206,6 +210,8 @@ def mainLoop():
 
 		# once done with event
 		globals["events"].pop(0)
+
+
 
 
 
