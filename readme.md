@@ -22,3 +22,21 @@ Whenever you want to start the game or continue the setup, you need to activate 
 
 > ###### with Git Bash / WSL:
 > source .venv/Scripts/activate
+
+To continue the setup, you will need to type the line below to install pygame.
+
+##### on Windows without old versions of Python:
+
+> pip install pygame-ce
+
+##### otherwise:
+
+> pip install pygame
+
+The game is now completely set up, to play the game, have the virtual environment be active, and enter the line below.
+
+> python3 main-window.py
+
+Once you're done playing, type the line below and you're done.
+
+> deactivate
