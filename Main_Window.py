@@ -62,7 +62,7 @@ screenSize = [
 	globals["spacetimeSize"][0] * preferences["screenSizeScale"],
 	globals["spacetimeSize"][1] * preferences["screenSizeScale"],
 ]
-screen = pygame.display.set_mode(screenSize)
+globals["screen"] = pygame.display.set_mode(screenSize)
 
 #####################
 #      /SCREEN      #
