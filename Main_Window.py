@@ -42,6 +42,10 @@ globals = {
 	"spacetimeSize": [1600, 900],
 	"events": [],
 	"pygameEvents": [],
+	"objects": {
+		"cameras": [],
+		"characters": [],
+	},
 }
 
 ####################
@@ -75,6 +79,11 @@ screen = pygame.display.set_mode(screenSize)
 class eventClass():
 
 	def __init__(self, inType=None, inName=None, inInfo=[]):
+
+		# ID
+		## regular id is set to 0 as the characterClass is not meant to be used standalone
+		self.id = 0
+		self.objID = "Ev"
 
 		# type
 		self.type = inType
@@ -120,7 +129,6 @@ class characterClass():
 		# ID
 		## regular id is set to 0 as the characterClass is not meant to be used standalone
 		self.id = 0
-		## Ch for character
 		self.objID = "Ch"
 
 		# PHYSICS
@@ -129,6 +137,8 @@ class characterClass():
 			self.physics[key] = defaultCharacterPhysicsDict[key]
 		for key in inPhysics.keys():
 			self.physics[key] = inPhysics[key]
+
+		self.velocity = [0, 0]
 
 ########################################
 #                                      #
@@ -147,6 +157,11 @@ class characterClass():
 class cameraClass():
 
 	def __init__(self, inSize=None, inDistance=0):
+
+		# ID
+		## regular id is set to 0 as the characterClass is not meant to be used standalone
+		self.id = 0
+		self.objID = "Ca"
 
 		# size
 		if inSize == None:
@@ -215,8 +230,16 @@ def mainLoop():
 
 
 
+	########################################
+	#                                      #
+	#              MAIN CALCS              #
+	#                                      #
+	########################################
 
-	# CALC
+	# main fighting state
+	if int(globals["gameState"]/10) == 1:
+
+		pass
 
 
 
