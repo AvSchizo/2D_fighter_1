@@ -20,6 +20,7 @@ verifyPreferences(defaultPreferences)
 
 with open("preferences.json", "r") as f:
 	preferences = json.load(f)
+
 ####################
 #   /preferences   #
 ####################
@@ -36,7 +37,9 @@ globals = {
 	"gameState": 10,
 	"tickRate": 60,
 	"FPS": 75,
+	"spacetimeSize": [1600, 900],
 }
+
 ####################
 #     /globals     #
 ####################
@@ -59,20 +62,47 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inPhysics=defaultCharacterPhysicsDict):
+	def __init__(self, inPhysics={}):
 
 		# PHYSICS
-		self.gravity = inPhysics["gravity"]
-		self.maxFallSpeed = inPhysics["maxFallSpeed"]
-		self.movementAccel = inPhysics["movementAccel"]
-		self.maxRunSpeed = inPhysics["maxRunSpeed"]
-		self.jumpForce = inPhysics["jumpForce"]
+		self.physics = {}
+		for key in defaultCharacterPhysicsDict.keys():
+			self.physics[key] = defaultCharacterPhysicsDict[key]
+		for key in inPhysics.keys():
+			self.physics[key] = inPhysics[key]
 
 ########################################
 #                                      #
 #           /character class           #
 #                                      #
 ########################################
+
+
+
+
+########################################
+#                                      #
+#             camera class             #
+#                                      #
+########################################
+class cameraClass():
+
+	def __init__(self, inSize=None, inDistance=0):
+
+		# size
+		if inSize == None:
+			self.size = globals["spacetimeSize"]
+		else:
+			self.size = inSize
+
+		# distance
+		self.distance = inDistance
+
+#########################################
+#                                       #
+#             /camera class             #
+#                                       #
+#########################################
 
 
 
@@ -100,10 +130,22 @@ def mainLoop():
 ########################################
 
 
+
+
+
+
+
+
 if __name__ != "__main__":
 	quit()
 
 
+
+########################################
+#                                      #
+#              frame loop              #
+#                                      #
+########################################
 timeGrotched = 0
 lastGrotch = pygame.time.get_ticks()
 while globals["running"]:
