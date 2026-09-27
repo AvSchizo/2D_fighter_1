@@ -1,11 +1,13 @@
-# game name: "The Watch"
-
 import pygame
 pygame.init()
 clock = pygame.time.Clock()
 
 
 import json
+
+
+from decimal import Decimal
+decimal = Decimal
 
 
 ###################
@@ -16,18 +18,21 @@ from savePreferences import savePreferences
 
 # default preferences here
 defaultPreferences = {
-	"screenSizeScale": 1,
+	"screenSizeScale": (9/16),
 }
+
+#
+# please please please turn this off for an official release
+#
+savePreferencesAsDefault = True
+if savePreferencesAsDefault:
+	savePreferences(defaultPreferences)
+
 
 verifyPreferences(defaultPreferences)
 
 with open("preferences.json", "r") as f:
 	preferences = json.load(f)
-
-# please please please turn this off for an official release
-savePreferencesAsDefault = True
-if savePreferencesAsDefault:
-	savePreferences(preferences)
 
 ####################
 #   /preferences   #
@@ -45,7 +50,7 @@ globals = {
 	"gameState": 10,
 	"tickRate": 60,
 	"FPS": 75,
-	"spacetimeSize": [1600, 900],
+	"spacetimeSize": [3200, 1800],
 	"events": [],
 	"pygameEvents": [],
 	"objects": {
@@ -74,6 +79,7 @@ screenSize = [
 	globals["spacetimeSize"][1] * preferences["screenSizeScale"],
 ]
 globals["screen"] = pygame.display.set_mode(screenSize)
+pygame.display.set_caption("The Watch")
 
 #####################
 #      /SCREEN      #

@@ -45,3 +45,7 @@ Once you're done playing, type the line below and you're done.
 
 You may notice there is no preferences.json to start.
 Fear not, this is intentional and it will appear with the default preferences upon first starting up the game.
+
+#### screenSizeScale:
+
+The larger the number, the larger the window will be on the screen.
