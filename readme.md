@@ -15,13 +15,8 @@ Whenever you want to start the game or continue the setup, you need to activate 
 ##### on Windows:
 
 > ###### with Command Prompt:
-
 > .\\.venv\Scripts\activate.bat
-
 > ###### with Powershell:
-
 > .\\.venv\Scripts\Activate.ps1
-
 > ###### with Git Bash / WSL:
-
 > source .venv/Scripts/activate
