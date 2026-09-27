@@ -13,9 +13,11 @@ import json
 ###################
 from verifyPreferences import verifyPreferences
 
+# default preferences here
 defaultPreferences = {
 	"screenSizeScale": 1,
 }
+
 verifyPreferences(defaultPreferences)
 
 with open("preferences.json", "r") as f:
@@ -38,11 +40,29 @@ globals = {
 	"tickRate": 60,
 	"FPS": 75,
 	"spacetimeSize": [1600, 900],
+	"events": [],
+	"pygameEvents": [],
 }
 
 ####################
 #     /globals     #
 ####################
+
+
+
+
+####################
+#      SCREEN      #
+####################
+screenSize = [
+	globals["spacetimeSize"][0] * preferences["screenSizeScale"],
+	globals["spacetimeSize"][1] * preferences["screenSizeScale"],
+]
+screen = pygame.display.set_mode(screenSize)
+
+#####################
+#      /SCREEN      #
+#####################
 
 
 
@@ -108,13 +128,27 @@ class cameraClass():
 
 
 
-#######################################
-#                                     #
-#              MAIN LOOP              #
-#                                     #
-#######################################
+###########################################################
+#                                                         #
+#                                                         #
+#                        MAIN LOOP                        #
+#                                                         #
+#                                                         #
+###########################################################
 def mainLoop():
-	pass
+	# FRAME DUTIES
+
+	globals["currentFrame"] += 1
+
+	globals["pygameEvents"] = pygame.event.get()
+	for event in globals["pygameEvents"]:
+
+		if event.type == pygame.QUIT:
+
+			globals["running"] = False
+			quit()
+
+
 
 	# CALC
 
@@ -123,11 +157,17 @@ def mainLoop():
 
 	# RENDERING
 
-########################################
-#                                      #
-#              /MAIN LOOP              #
-#                                      #
-########################################
+
+
+	pygame.display.update()
+
+############################################################
+#                                                          #
+#                                                          #
+#                        /MAIN LOOP                        #
+#                                                          #
+#                                                          #
+############################################################
 
 
 
