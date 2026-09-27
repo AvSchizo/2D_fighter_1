@@ -1,0 +1,1 @@
+This folder is for things whose file paths did not work, the name "Error" is entirely intentional, it is not itself an error.

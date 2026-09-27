@@ -10,6 +10,9 @@ from decimal import Decimal
 decimal = Decimal
 
 
+from pathlib import Path
+
+
 ###################
 #   preferences   #
 ###################
@@ -18,14 +21,14 @@ from savePreferences import savePreferences
 
 # default preferences here
 defaultPreferences = {
-	"screenSizeScale": (9/16),
+	"screenSizeScale": .5,
 	"playerWithControllerPriority": 1,
 }
 
 #
-# please please please turn this off for an official release
+# please please please make sure this is off for an official release
 #
-savePreferencesAsDefault = True
+savePreferencesAsDefault = False
 if savePreferencesAsDefault:
 	savePreferences(defaultPreferences)
 
@@ -48,7 +51,7 @@ with open("preferences.json", "r") as f:
 globals = {
 	"running": True,
 	"currentFrame": 0,
-	"gameState": 10,
+	"gameState": 20,
 	"tickRate": 60,
 	"FPS": 75,
 	"spacetimeSize": [3200, 1800],
@@ -156,6 +159,17 @@ class characterClass():
 
 		self.velocity = [0, 0]
 
+
+
+	def loadSprites(self, characterName):
+		spritePath = Path("characters") / characterName / "sprites"
+
+		returnList = []
+		for i in [sprite for sprite in spritePath.iterdir()]:
+			pygame.image.load(i).convert_alpha()
+
+		return returnList
+
 ########################################
 #                                      #
 #           /character class           #
@@ -165,41 +179,41 @@ class characterClass():
 
 
 
-########################################
-#                                      #
-#               Jane Doe               #
-#                                      #
-########################################
-defaultCharacterPhysicsDict = {
-	"gravity": -10,
-	"maxFallSpeed": -50,
-	"movementAccel": 5,
-	"maxRunSpeed": 25,
-	"jumpForce": 25,
-}
+############################################################
+#                                                          #
+#                                                          #
+#                        characters                        #
+#                                                          #
+#                                                          #
+############################################################
 
-class characterClass():
+####################
+#     Jane Doe     #
+####################
+JaneDoePhysicsDict = {}
 
-	def __init__(self, inPhysics={}, inID=0):
+class JaneDoeClass(characterClass):
+
+	def __init__(self, inID=0):
+		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict)
 
 		# ID
-		self.id = inID
-		self.objID = "Ch"
+		self.objID += "_JaDo"
 
-		# PHYSICS
-		self.physics = {}
-		for key in defaultCharacterPhysicsDict.keys():
-			self.physics[key] = defaultCharacterPhysicsDict[key]
-		for key in inPhysics.keys():
-			self.physics[key] = inPhysics[key]
+		# sprites
+		self.sprites = self.loadSprites("Jane Doe")
 
-		self.velocity = [0, 0]
+#####################
+#     /Jane Doe     #
+#####################
 
-#########################################
-#                                       #
-#               /Jane Doe               #
-#                                       #
-#########################################
+#############################################################
+#                                                           #
+#                                                           #
+#                        /characters                        #
+#                                                           #
+#                                                           #
+#############################################################
 
 
 
@@ -234,6 +248,57 @@ class cameraClass():
 #             /camera class             #
 #                                       #
 #########################################
+
+
+
+
+########################################
+#                                      #
+#           background class           #
+#                                      #
+########################################
+class backgroundClass():
+
+	def __init__(self, inType=None, inDistance=0, inPos=[0, 0]):
+
+		# ID
+		self.objID = "Ba"
+
+		if inType == "main menu":
+			self.objID += "Mm"
+			backgroundPath = "Main Menu"
+
+		else:
+			self.objID += "Er"
+			backgroundPath = "Error"
+
+		self.image = Path(backgroundPath) / "background.png"
+
+		# distance
+		self.distance = inDistance
+
+		# pos
+		self.pos = inPos
+
+#########################################
+#                                       #
+#           /background class           #
+#                                       #
+#########################################
+
+
+
+
+###################
+#    main menu    #
+###################
+mainMenu = {
+	"background"
+}
+
+####################
+#    /main menu    #
+####################
 
 
 
@@ -301,7 +366,19 @@ def mainLoop():
 
 
 
-	# RENDERING
+	# main menu
+	if int(globals["gameState"]/10) == 2:
+
+		pass
+
+
+
+
+	#######################################
+	#                                     #
+	#              RENDERING              #
+	#                                     #
+	#######################################
 
 
 
@@ -344,7 +421,7 @@ while globals["running"]:
 
 	timeGrotched += pygame.time.get_ticks() - lastGrotch
 
-	timeBetweenFrames = 1000/globals["FPS"]
+	timeBetweenFrames = 1000/globals["tickRate"]
 
 	for i in range(int(timeGrotched/(timeBetweenFrames))):
 		timeGrotched -= timeBetweenFrames
