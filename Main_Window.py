@@ -69,6 +69,39 @@ screen = pygame.display.set_mode(screenSize)
 
 #######################################
 #                                     #
+#             event class             #
+#                                     #
+#######################################
+class eventClass():
+
+	def __init__(self, inType=None, inName=None, inInfo=[]):
+
+		# type
+		self.type = inType
+
+		# from who
+		self.fromWho = inName
+
+		# info
+		self.info = inInfo
+
+
+
+	def printInfo(self):
+		for l in self.info:
+			print(l)
+
+########################################
+#                                      #
+#             /event class             #
+#                                      #
+########################################
+
+
+
+
+#######################################
+#                                     #
 #           character class           #
 #                                     #
 #######################################
@@ -82,7 +115,12 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inPhysics={}):
+	def __init__(self, inID=0, inPhysics={}):
+
+		# ID
+		self.id = inID
+		## Ch for character
+		self.objID = "Ch"
 
 		# PHYSICS
 		self.physics = {}
@@ -140,6 +178,7 @@ def mainLoop():
 
 	globals["currentFrame"] += 1
 
+	# pygame events
 	globals["pygameEvents"] = pygame.event.get()
 	for event in globals["pygameEvents"]:
 
@@ -147,6 +186,26 @@ def mainLoop():
 
 			globals["running"] = False
 			quit()
+
+
+
+	# user events
+	while len(globals["events"]) > 0:
+		event = globals["events"][0]
+
+		if event.type == None:
+			pass
+
+		elif event.type == "report":
+			print(f"event, report: {event.fromWho}")
+			event.printInfo()
+
+		else:
+			print(f"event type: {event.type} is unknown")
+
+
+		# once done with event
+		globals["events"].pop(0)
 
 
 
