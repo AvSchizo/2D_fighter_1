@@ -12,6 +12,7 @@ import json
 #   preferences   #
 ###################
 from verifyPreferences import verifyPreferences
+from savePreferences import savePreferences
 
 # default preferences here
 defaultPreferences = {
@@ -22,6 +23,11 @@ verifyPreferences(defaultPreferences)
 
 with open("preferences.json", "r") as f:
 	preferences = json.load(f)
+
+# please please please turn this off for an official release
+savePreferencesAsDefault = True
+if savePreferencesAsDefault:
+	savePreferences(preferences)
 
 ####################
 #   /preferences   #
@@ -45,6 +51,11 @@ globals = {
 	"objects": {
 		"cameras": [],
 		"characters": [],
+	},
+	"IDs": {
+		"event": 0,
+		"camera": 0,
+		"character": 0,
 	},
 }
 
@@ -78,11 +89,10 @@ globals["screen"] = pygame.display.set_mode(screenSize)
 #######################################
 class eventClass():
 
-	def __init__(self, inType=None, inName=None, inInfo=[]):
+	def __init__(self, inType=None, inName=None, inInfo=[], inID=0):
 
 		# ID
-		## regular id is set to 0 as the characterClass is not meant to be used standalone
-		self.id = 0
+		self.id = inID
 		self.objID = "Ev"
 
 		# type
@@ -124,11 +134,10 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inPhysics={}):
+	def __init__(self, inPhysics={}, inID=0):
 
 		# ID
-		## regular id is set to 0 as the characterClass is not meant to be used standalone
-		self.id = 0
+		self.id = inID
 		self.objID = "Ch"
 
 		# PHYSICS
@@ -151,16 +160,54 @@ class characterClass():
 
 ########################################
 #                                      #
+#               Jane Doe               #
+#                                      #
+########################################
+defaultCharacterPhysicsDict = {
+	"gravity": -10,
+	"maxFallSpeed": -50,
+	"movementAccel": 5,
+	"maxRunSpeed": 25,
+	"jumpForce": 25,
+}
+
+class characterClass():
+
+	def __init__(self, inPhysics={}, inID=0):
+
+		# ID
+		self.id = inID
+		self.objID = "Ch"
+
+		# PHYSICS
+		self.physics = {}
+		for key in defaultCharacterPhysicsDict.keys():
+			self.physics[key] = defaultCharacterPhysicsDict[key]
+		for key in inPhysics.keys():
+			self.physics[key] = inPhysics[key]
+
+		self.velocity = [0, 0]
+
+#########################################
+#                                       #
+#               /Jane Doe               #
+#                                       #
+#########################################
+
+
+
+
+########################################
+#                                      #
 #             camera class             #
 #                                      #
 ########################################
 class cameraClass():
 
-	def __init__(self, inSize=None, inDistance=0):
+	def __init__(self, inID=0, inSize=None, inDistance=0, inPos=[0, 0]):
 
 		# ID
-		## regular id is set to 0 as the characterClass is not meant to be used standalone
-		self.id = 0
+		self.id = inID
 		self.objID = "Ca"
 
 		# size
@@ -171,6 +218,9 @@ class cameraClass():
 
 		# distance
 		self.distance = inDistance
+
+		# pos
+		self.pos = inPos
 
 #########################################
 #                                       #
