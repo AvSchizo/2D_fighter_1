@@ -1,5 +1,8 @@
+# game name: "The Watch"
+
 import pygame
 pygame.init()
+clock = pygame.time.Clock()
 
 
 import json
@@ -28,8 +31,11 @@ with open("preferences.json", "r") as f:
 #     globals     #
 ###################
 globals = {
+	"running": True,
 	"currentFrame": 0,
 	"gameState": 10,
+	"tickRate": 60,
+	"FPS": 75,
 }
 ####################
 #     /globals     #
@@ -67,3 +73,47 @@ class characterClass():
 #           /character class           #
 #                                      #
 ########################################
+
+
+
+
+
+#######################################
+#                                     #
+#              MAIN LOOP              #
+#                                     #
+#######################################
+def mainLoop():
+	pass
+
+	# CALC
+
+
+
+
+	# RENDERING
+
+########################################
+#                                      #
+#              /MAIN LOOP              #
+#                                      #
+########################################
+
+
+if __name__ != "__main__":
+	quit()
+
+
+timeGrotched = 0
+lastGrotch = pygame.time.get_ticks()
+while globals["running"]:
+
+	timeGrotched += pygame.time.get_ticks() - lastGrotch
+
+	timeBetweenFrames = 1000/globals["FPS"]
+
+	for i in range(int(timeGrotched/(timeBetweenFrames))):
+		timeGrotched -= timeBetweenFrames
+		mainLoop()
+
+	clock.tick(globals["FPS"])
