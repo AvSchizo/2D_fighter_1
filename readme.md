@@ -25,7 +25,7 @@ Whenever you want to start the game or continue the setup, you need to activate 
 
 To continue the setup, you will need to type the line below to install pygame.
 
-##### on Windows with Python version 3.12+ (most likely):
+##### on Windows with Python version 3.12- (most likely):
 
 > pip install pygame-ce
 
