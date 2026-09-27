@@ -1,3 +1,4 @@
 .venv
 preferences.json
 __pycache__
+test.py
