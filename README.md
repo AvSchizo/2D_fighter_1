@@ -41,6 +41,10 @@ Once you're done playing, type the line below and you're done.
 
 > deactivate
 
+## Error
+
+This is a file that holds all the error textures and audio and messages, it itself is not an error, please don't mistake it for such.
+
 ## Preferences
 
 You may notice there is no preferences.json to start.
