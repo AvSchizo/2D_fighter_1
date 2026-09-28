@@ -161,14 +161,25 @@ class characterClass():
 
 
 
-	def loadSprites(self, characterName):
-		spritePath = Path("characters") / characterName / "sprites"
+	def loadSprites(self, characterName, version=1):
+		spritePath = Path("characters") / characterName / "sprites" / "alt" + str(version)
 
-		returnList = []
-		for i in [sprite for sprite in spritePath.iterdir()]:
-			pygame.image.load(i).convert_alpha()
+		returnDict = {}
 
-		return returnList
+		spriteList = [sprite for sprite in spritePath.iterdir()]
+
+		for s in spriteList:
+			att = s.split("_")[0]
+			if not att in returnDict.keys():
+				returnDict[att] = []
+			returnDict[att].append(pygame.image.load(s).convert_alpha())
+
+		return returnDict
+
+
+
+	def keysIntoInputs(self):
+		pass
 
 ########################################
 #                                      #
@@ -190,6 +201,7 @@ class characterClass():
 ####################
 #     Jane Doe     #
 ####################
+# empty dict here means no changes from default physics
 JaneDoePhysicsDict = {}
 
 class JaneDoeClass(characterClass):
@@ -201,7 +213,7 @@ class JaneDoeClass(characterClass):
 		self.objID += "_JaDo"
 
 		# sprites
-		self.sprites = self.loadSprites("Jane Doe")
+		self.sprites = self.loadSprites("Jane Doe", self.id+1)
 
 #####################
 #     /Jane Doe     #
