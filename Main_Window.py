@@ -62,7 +62,6 @@ globals = {
 		"characters": [],
 	},
 	"IDs": {
-		"event": 0,
 		"camera": 0,
 		"character": 0,
 	},
@@ -70,6 +69,34 @@ globals = {
 
 ####################
 #     /globals     #
+####################
+
+
+
+
+###################
+#     sprites     #
+###################
+def chopSprites(sheet, size):
+	ref = sheet
+	w = ref.get_width()/size[0]
+	h = ref.get_height()/size[1]
+
+	rows = []
+	for e in range(size[1]):
+		print(e*h)
+		rows.append(ref.subsurface(pygame.Rect(0, e*h, ref.get_width(), h)))
+	print()
+
+	all = []
+	for r in rows:
+		for a in range(size[0]):
+			all.append(r.subsurface(pygame.Rect(a*w, 0, w, h)))
+
+	return all
+
+####################
+#     /sprites     #
 ####################
 
 
@@ -99,11 +126,14 @@ pygame.display.set_caption("The Watch")
 #######################################
 class eventClass():
 
-	def __init__(self, inType=None, inName=None, inInfo=[], inID=0):
+	def __init__(self, inType=None, inName=None, inInfo=[]):
 
 		# ID
-		self.id = inID
 		self.objID = "Ev"
+		if inType == None:
+			self.objID += "_No"
+		else:
+			self.objID += "_" + str(inType)[:2]
 
 		# type
 		self.type = inType
@@ -169,10 +199,44 @@ class characterClass():
 		spriteList = [sprite for sprite in spritePath.iterdir()]
 
 		for s in spriteList:
-			att = s.split("_")[0]
+			att = s.split("_")
+			if len(att) == 0:
+				continue
+			if len(att[-1].split(".") > 1):
+				att[-1] = att[-1].split(".").pop(-1)
+
+			# which attack
+			ack = att[0]
+
+			# if a sheet
+			if len(att) >= 2:
+				wa = att[1].split()
+				if wa[0] == "sheet":
+					if len(wa) > 1:
+						dim = []
+						for i in range(2):
+							try:
+								dim.append(int(wa[1].split("-")[i]))
+							except ValueError:
+								globals["events"].append(eventClass(inType="error", inName="characterClass, loadSprites()", inInfo=["incorrect sprite sheet dimensions", spritePath]))
+								dim.append(1)
+				else:
+					she = False
+			else:
+				she = False
+
+
+			# making sure place for it exists
 			if not att in returnDict.keys():
 				returnDict[att] = []
-			returnDict[att].append(pygame.image.load(s).convert_alpha())
+
+			# sheets
+			if she:
+				for i in chopSprites(pygame.image.load(s).convert_alpha(), dim):
+					returnDict[ack].append(i)
+
+			else:
+				returnDict[ack].append(pygame.image.load(s).convert_alpha())
 
 		return returnDict
 
@@ -350,12 +414,9 @@ def mainLoop():
 		if event.type == None:
 			pass
 
-		elif event.type == "report":
-			print(f"event, report: {event.fromWho}")
-			event.printInfo()
-
 		else:
-			print(f"event type: {event.type} is unknown")
+			print(f"event, {event.type}: {event.fromWho}")
+			event.printInfo()
 
 
 		# once done with event
@@ -386,15 +447,6 @@ def mainLoop():
 
 
 
-	#######################################
-	#                                     #
-	#              RENDERING              #
-	#                                     #
-	#######################################
-
-
-
-	pygame.display.update()
 
 ############################################################
 #                                                          #
@@ -415,6 +467,10 @@ if __name__ != "__main__":
 	quit()
 
 
+#frickin test
+scale = 1/1
+aaaa = chopSprites(pygame.image.load(Path(Path("characters")/"Jane Doe"/"sprites"/"alt2"/"shutupholup.png")), [3, 3])
+
 
 ########################################
 #                                      #
@@ -432,11 +488,26 @@ while globals["running"]:
 	# this is to keep a non framerate-dependant fighting game "frame" system
 
 	timeGrotched += pygame.time.get_ticks() - lastGrotch
+	lastGrotch = pygame.time.get_ticks()
 
 	timeBetweenFrames = 1000/globals["tickRate"]
 
 	for i in range(int(timeGrotched/(timeBetweenFrames))):
 		timeGrotched -= timeBetweenFrames
 		mainLoop()
+
+
+	
+	#######################################
+	#                                     #
+	#              RENDERING              #
+	#                                     #
+	#######################################
+	globals["screen"].fill("blue")
+	for i in range(len(aaaa)):
+		wa = aaaa[i]
+		globals["screen"].blit(wa, (0, wa.get_height()*i))
+
+	pygame.display.update()
 
 	clock.tick(globals["FPS"])
