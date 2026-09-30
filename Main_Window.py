@@ -389,38 +389,6 @@ mainMenu = {
 ###########################################################
 def mainLoop():
 
-	########################################
-	#                                      #
-	#             FRAME DUTIES             #
-	#                                      #
-	########################################
-	globals["currentFrame"] += 1
-
-	# pygame events
-	globals["pygameEvents"] = pygame.event.get()
-	for event in globals["pygameEvents"]:
-
-		if event.type == pygame.QUIT:
-
-			globals["running"] = False
-			quit()
-
-
-
-	# user events
-	while len(globals["events"]) > 0:
-		event = globals["events"][0]
-
-		if event.type == None:
-			pass
-
-		else:
-			print(f"event, {event.type}: {event.fromWho}")
-			event.printInfo()
-
-
-		# once done with event
-		globals["events"].pop(0)
 
 
 
@@ -467,9 +435,6 @@ if __name__ != "__main__":
 	quit()
 
 
-#frickin test
-scale = 1/1
-aaaa = chopSprites(pygame.image.load(Path(Path("characters")/"Jane Doe"/"sprites"/"alt2"/"shutupholup.png")), [3, 3])
 
 
 ########################################
@@ -481,6 +446,42 @@ timeGrotched = 0
 lastGrotch = pygame.time.get_ticks()
 while globals["running"]:
 
+	########################################
+	#                                      #
+	#             FRAME DUTIES             #
+	#                                      #
+	########################################
+	globals["currentFrame"] += 1
+
+	# pygame events
+	globals["pygameEvents"] = pygame.event.get()
+	for event in globals["pygameEvents"]:
+
+		if event.type == pygame.QUIT:
+
+			globals["running"] = False
+			quit()
+
+
+
+	# user events
+	while len(globals["events"]) > 0:
+		event = globals["events"][0]
+
+		if event.type == None:
+			pass
+
+		else:
+			print(f"event, {event.type}: {event.fromWho}")
+			event.printInfo()
+
+
+		# once done with event
+		globals["events"].pop(0)
+
+
+
+	
 	# will count the time since last frame, add it to counter
 	# for however many ticks worth of time is in counter:
 	# repeat game update that many times
@@ -503,10 +504,7 @@ while globals["running"]:
 	#              RENDERING              #
 	#                                     #
 	#######################################
-	globals["screen"].fill("blue")
-	for i in range(len(aaaa)):
-		wa = aaaa[i]
-		globals["screen"].blit(wa, (0, wa.get_height()*i))
+	globals["screen"].fill("lavender")
 
 	pygame.display.update()
 
