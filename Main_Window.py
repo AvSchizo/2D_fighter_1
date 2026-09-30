@@ -51,21 +51,29 @@ with open("preferences.json", "r") as f:
 globals = {
 	"running": True,
 	"currentFrame": 0,
-	"gameState": 20,
+	# if gameSate%100 == 0, that is a loading state, and will trigger the load function for whatever the hundreds place is
+	"gameState": 200,
+	"substate": 0,
 	"tickRate": 60,
 	"FPS": 75,
 	"spacetimeSize": [3200, 1800],
-	"events": [],
 	"pygameEvents": [],
-	"objects": {
-		"cameras": [],
-		"characters": [],
-	},
-	"IDs": {
-		"camera": 0,
-		"character": 0,
-	},
+	"userEvents": [],
 }
+
+
+
+def resetObjects():
+	globals["objects"] = {
+		"camera": [],
+		"character": [],
+		"background": [],
+	}
+
+resetObjects()
+globals["ID"] = {}
+for key in globals["objects"].keys():
+	globals["ID"][key] = 0
 
 ####################
 #     /globals     #
@@ -174,7 +182,7 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inPhysics={}, inID=0):
+	def __init__(self, inID=0, inPhysics={}, inPos=[0, 0], inDist=0):
 
 		# ID
 		self.id = inID
@@ -186,8 +194,12 @@ class characterClass():
 			self.physics[key] = defaultCharacterPhysicsDict[key]
 		for key in inPhysics.keys():
 			self.physics[key] = inPhysics[key]
-
+		
 		self.velocity = [0, 0]
+
+		# actions
+		self.action = "idle"
+		self.progress = 1
 
 
 
@@ -218,7 +230,7 @@ class characterClass():
 							try:
 								dim.append(int(wa[1].split("-")[i]))
 							except ValueError:
-								globals["events"].append(eventClass(inType="error", inName="characterClass, loadSprites()", inInfo=["incorrect sprite sheet dimensions", spritePath]))
+								globals["userEvents"].append(eventClass(inType="error", inName="characterClass, loadSprites()", inInfo=["incorrect sprite sheet dimensions", spritePath]))
 								dim.append(1)
 				else:
 					she = False
@@ -244,6 +256,27 @@ class characterClass():
 
 	def keysIntoInputs(self):
 		pass
+	
+
+
+	def draw(self, specCam=None):
+
+		if specCam == None:
+			try:
+				cam = globals["objects"]["camera"][0]
+			except:
+				cam = cameraClass()
+		else:
+			cam = specCam
+		
+		scrn = globals["screen"]
+
+		scaling = cam.getScaling(objDist=self.distance)*preferences["screenSizeScale"]
+
+		try:
+			self.image = self.sprites[self.action][self.progress-1]
+		except:
+			self.image = Path("Error") / "sprite.png"
 
 ########################################
 #                                      #
@@ -270,7 +303,7 @@ JaneDoePhysicsDict = {}
 
 class JaneDoeClass(characterClass):
 
-	def __init__(self, inID=0):
+	def __init__(self, inID=0, inPos=[0, 0], inDist=0):
 		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict)
 
 		# ID
@@ -278,6 +311,11 @@ class JaneDoeClass(characterClass):
 
 		# sprites
 		self.sprites = self.loadSprites("Jane Doe", self.id+1)
+
+		# position
+		self.pos = inPos
+		self.dist = inDist
+
 
 #####################
 #     /Jane Doe     #
@@ -301,7 +339,7 @@ class JaneDoeClass(characterClass):
 ########################################
 class cameraClass():
 
-	def __init__(self, inID=0, inSize=None, inDistance=0, inPos=[0, 0]):
+	def __init__(self, inID=0, inSize=None, inDistance=0, inPos=[0, 0], scalingReference=[1/2, 10]):
 
 		# ID
 		self.id = inID
@@ -318,6 +356,14 @@ class cameraClass():
 
 		# pos
 		self.pos = inPos
+
+		# scaling
+		self.scalingFactor = scalingReference[0]**(1/scalingReference[1])
+	
+
+
+	def getScaling(self, objDist=0):
+		return self.scalingFactor**(self.distance-objDist)
 
 #########################################
 #                                       #
@@ -379,6 +425,29 @@ mainMenu = {
 
 
 
+########################################
+#                                      #
+#             transitions              #
+#                                      #
+########################################
+
+# main menu
+def load_mainMenu():
+	globals["gameState"] = 101
+	globals["substate"] = 0
+	resetObjects()
+	globals["objects"]["camera"].append(cameraClass())
+	globals["objects"]["background"].append(backgroundClass(inType="main menu"))
+
+#########################################
+#                                       #
+#             /transitions              #
+#                                       #
+#########################################
+
+
+
+
 
 ###########################################################
 #                                                         #
@@ -389,18 +458,8 @@ mainMenu = {
 ###########################################################
 def mainLoop():
 
-
-
-
-
-	########################################
-	#                                      #
-	#              MAIN CALCS              #
-	#                                      #
-	########################################
-
 	# main fighting state
-	if int(globals["gameState"]/10) == 1:
+	if int(globals["gameState"]/100) == 1:
 
 		pass
 
@@ -408,7 +467,7 @@ def mainLoop():
 
 
 	# main menu
-	if int(globals["gameState"]/10) == 2:
+	if int(globals["gameState"]/100) == 2:
 
 		pass
 
@@ -427,12 +486,41 @@ def mainLoop():
 
 
 
+###########################################################
+#                                                         #
+#                                                         #
+#                        RENDERING                        #
+#                                                         #
+#                                                         #
+###########################################################
+def renderAll():
+
+
+	globals["screen"].fill("lavender")
+
+	pygame.display.update()
+
+############################################################
+#                                                          #
+#                                                          #
+#                        /RENDERING                        #
+#                                                          #
+#                                                          #
+############################################################
+
+
+
+
 
 
 
 
 if __name__ != "__main__":
 	quit()
+
+
+
+
 
 
 
@@ -465,8 +553,8 @@ while globals["running"]:
 
 
 	# user events
-	while len(globals["events"]) > 0:
-		event = globals["events"][0]
+	while len(globals["userEvents"]) > 0:
+		event = globals["userEvents"][0]
 
 		if event.type == None:
 			pass
@@ -477,7 +565,7 @@ while globals["running"]:
 
 
 		# once done with event
-		globals["events"].pop(0)
+		globals["userEvents"].pop(0)
 
 
 
@@ -504,8 +592,9 @@ while globals["running"]:
 	#              RENDERING              #
 	#                                     #
 	#######################################
-	globals["screen"].fill("lavender")
+	renderAll()
 
-	pygame.display.update()
+
+
 
 	clock.tick(globals["FPS"])
