@@ -534,7 +534,10 @@ def load_mainFight():
 	resetObjects()
 	globals["objects"]["camera"].append(cameraClass())
 	for i in range(2):
-		globals["objects"]["player"].append(characterList[i+1])
+		try:
+			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]])
+		except:
+			globals["objects"]["character"].append(characterList[0])
 	globals["objects"]["background"].append(backgroundClass(inType="main combat"))
 
 #########################################
