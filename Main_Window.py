@@ -258,17 +258,17 @@ class characterClass():
 
 
 	def loadSprites(self, characterName, version=1):
-		spritePath = Path("characters") / characterName / "sprites" / "alt" + str(version)
+		spritePath = Path("characters") / characterName / "sprites" / f"alt{version}"
 
 		returnDict = {}
 
 		spriteList = [sprite for sprite in spritePath.iterdir()]
 
 		for s in spriteList:
-			att = s.split("_")
+			att = str(s).split("_")
 			if len(att) == 0:
 				continue
-			if len(att[-1].split(".") > 1):
+			if len(att[-1].split(".")) > 1:
 				att[-1] = att[-1].split(".").pop(-1)
 
 			# which attack
@@ -293,8 +293,8 @@ class characterClass():
 
 
 			# making sure place for it exists
-			if not att in returnDict.keys():
-				returnDict[att] = []
+			if not ack in returnDict.keys():
+				returnDict[ack] = []
 
 			# sheets
 			if she:
@@ -535,9 +535,9 @@ def load_mainFight():
 	globals["objects"]["camera"].append(cameraClass())
 	for i in range(2):
 		try:
-			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]])
+			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]]())
 		except:
-			globals["objects"]["character"].append(characterList[0])
+			globals["objects"]["character"].append(characterList[characterPointPlace[0]]())
 	globals["objects"]["background"].append(backgroundClass(inType="main combat"))
 
 #########################################
