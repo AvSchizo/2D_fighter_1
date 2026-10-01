@@ -325,17 +325,20 @@ class characterClass():
 		
 		scrn = globals["screen"]
 
-		scaling = cam.getScaling(objDist=self.distance)*preferences["screenSizeScale"]
+		scaling = cam.getScaling(objDist=self.dist)*preferences["screenSizeScale"]
+		print(scaling)
 
 		image = self.findYourSprite()
 
 		rect = image.get_rect(center=(scrn.get_width()/2+(self.pos[0]-cam.pos[0])*scaling, scrn.get_height()/2-(self.pos[1]-cam.pos[1])*scaling))
+
+		scrn.blit(image, (0, 0))
 	
 
 
-	def findYourSprite(self):
-		# this is here so no one's confused, replace it when defining the character
-		pass
+	# def findYourSprite(self):
+	# 	# this is here so no one's confused, replace it when defining the character
+	# 	pass
 
 ########################################
 #                                      #
@@ -380,8 +383,8 @@ class JaneDoeClass(characterClass):
 
 
 	def findYourSprite(self):
-		# this is a test! don't use this!
-		image = pygame.Surface((50, 50))
+		# this is temporary! don't use this!
+		image = pygame.surface.Surface((50, 50))
 		image.fill("red")
 		return image
 
@@ -597,6 +600,13 @@ def renderAll():
 
 	globals["screen"].fill("lavender")
 
+	for ls in globals["objects"].keys():
+		for obj in globals["objects"][ls]:
+			try:
+				obj.draw()
+			except:
+				pass
+	
 	pygame.display.update()
 
 ############################################################
