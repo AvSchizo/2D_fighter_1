@@ -326,7 +326,6 @@ class characterClass():
 		scrn = globals["screen"]
 
 		scaling = cam.getScaling(objDist=self.dist)*preferences["screenSizeScale"]
-		print(scaling)
 
 		image = self.findYourSprite()
 
