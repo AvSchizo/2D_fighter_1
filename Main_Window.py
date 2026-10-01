@@ -52,6 +52,7 @@ globals = {
 	"running": True,
 	"currentFrame": 0,
 	# if gameSate%100 == 0, that is a loading state, and will trigger the load function for whatever the hundreds place is
+	# so please change it to 100 for release
 	"gameState": 200,
 	"substate": 0,
 	"tickRate": 60,
@@ -67,6 +68,7 @@ def resetObjects():
 	globals["objects"] = {
 		"camera": [],
 		"character": [],
+		"pointer": [],
 		"background": [],
 	}
 
@@ -164,6 +166,58 @@ class eventClass():
 #                                      #
 ########################################
 
+
+
+
+####################
+#  player pointer  #
+####################
+class playerPointerClass():
+
+	def __init__(self, inID=1, inType="CharSel", inPoint=0):
+		
+		# ID
+		self.objID = "PlPo"
+		self.id = inID
+
+		# type
+		self.type = inType
+
+		# pointing to
+		self.point = inPoint
+	
+
+
+	def movePointer(self, direction):
+
+		# character select
+		if self.type == "CharSel":
+
+			if direction == "left":
+
+				if self.point == 0:
+					self.point = len(characterList.keys())-1
+				
+				else:
+					self.point -= 1
+			
+			if direction == "right":
+
+				if self.point == len(characterList.keys())-1:
+					self.point = 0
+				
+				else:
+					self.point += 1
+
+
+		# character select
+		if self.type == "MainMenu":
+
+			pass
+
+#####################
+#  /player pointer  #
+#####################
 
 
 
@@ -273,10 +327,15 @@ class characterClass():
 
 		scaling = cam.getScaling(objDist=self.distance)*preferences["screenSizeScale"]
 
-		try:
-			self.image = self.sprites[self.action][self.progress-1]
-		except:
-			self.image = Path("Error") / "sprite.png"
+		image = self.findYourSprite()
+
+		rect = image.get_rect(center=(scrn.get_width()/2+(self.pos[0]-cam.pos[0])*scaling, scrn.get_height()/2-(self.pos[1]-cam.pos[1])*scaling))
+	
+
+
+	def findYourSprite(self):
+		# this is here so no one's confused, replace it when defining the character
+		pass
 
 ########################################
 #                                      #
@@ -294,6 +353,8 @@ class characterClass():
 #                                                          #
 #                                                          #
 ############################################################
+characterList = {}
+characterPointPlace = {}
 
 ####################
 #     Jane Doe     #
@@ -315,8 +376,17 @@ class JaneDoeClass(characterClass):
 		# position
 		self.pos = inPos
 		self.dist = inDist
+	
 
 
+	def findYourSprite(self):
+		# this is a test! don't use this!
+		image = pygame.Surface((50, 50))
+		image.fill("red")
+		return image
+
+characterList["Jane Doe"] = JaneDoeClass
+characterPointPlace[0] = "Jane Doe"
 #####################
 #     /Jane Doe     #
 #####################
@@ -389,12 +459,20 @@ class backgroundClass():
 		if inType == "main menu":
 			self.objID += "Mm"
 			backgroundPath = "Main Menu"
+		
+		if inType == "main combat":
+			self.objID += "Mc"
+			backgroundPath = "Main Combat"
 
 		else:
 			self.objID += "Er"
 			backgroundPath = "Error"
 
-		self.image = Path(backgroundPath) / "background.png"
+		# image
+		if backgroundPath == "Error":
+			self.image = Path("Error") / "background.png"
+		else:
+			self.image = Path("backgrounds") / backgroundPath / "background.png"
 
 		# distance
 		self.distance = inDistance
@@ -437,7 +515,27 @@ def load_mainMenu():
 	globals["substate"] = 0
 	resetObjects()
 	globals["objects"]["camera"].append(cameraClass())
+	globals["objects"]["pointer"].append(playerPointerClass())
 	globals["objects"]["background"].append(backgroundClass(inType="main menu"))
+
+
+# main combat
+def load_mainFight():
+	globals["gameState"] = 201
+	globals["substate"] = 0
+
+	playerChoices = {1: None, 2: None}
+	for p in globals["objects"]["pointer"]:
+		playerChoices[p.id] = p.point
+	for k in playerChoices.keys():
+		if playerChoices[k] == None:
+			playerChoices[k] = 0
+
+	resetObjects()
+	globals["objects"]["camera"].append(cameraClass())
+	for i in range(2):
+		globals["objects"]["player"].append(characterList[i+1])
+	globals["objects"]["background"].append(backgroundClass(inType="main combat"))
 
 #########################################
 #                                       #
@@ -458,22 +556,20 @@ def load_mainMenu():
 ###########################################################
 def mainLoop():
 
-	# main fighting state
+	# main menu
 	if int(globals["gameState"]/100) == 1:
 
-		pass
+		if globals["gameState"] == 100:
+			load_mainMenu()
 
 
 
 
-	# main menu
+	# main combat
 	if int(globals["gameState"]/100) == 2:
 
-		pass
-
-
-
-
+		if globals["gameState"] == 200:
+			load_mainFight()
 
 ############################################################
 #                                                          #
