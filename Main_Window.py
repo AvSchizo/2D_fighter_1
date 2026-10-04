@@ -221,6 +221,69 @@ class playerPointerClass():
 
 
 
+
+###################
+#      boxes      #
+###################
+class hurtboxClass():
+
+	def __init__(self, inPoints, inID, inTangibility=0):
+
+		# [topleft, bottomright, topright, bottomleft]
+		self.points = [
+			inPoints[0],
+			inPoints[1],
+			(inPoints[1], inPoints[0]),
+			(inPoints[0], inPoints[1]),
+		]
+
+		self.id = inID
+
+		# 0: regular
+		# 1: freeze frames, no damage
+		# 2: damage, no freeze frames
+		# 3: like it's not event there
+		self.tangibility = 0
+
+
+
+	def hitboxCollision(self, hitboxes, touched):
+
+		for hitbox in hitboxes:
+
+			if hitbox.id in touched:
+				continue
+
+			# colliding?
+			collided = False
+			for box in hitbox.boxes:
+				for p in self.points:
+					pointA = box[0]
+					pointB = box[1]
+					# then it's inside box
+					if p[0] > pointA[0] and p[0] < pointB[0] and p[1] > pointA[1] and p[1] < pointB[1]:
+						collided = True
+			if collided:
+				# I don't remember what I was fucking going with here, something about adding the hitbox id to touched, which is the list of hitbox IDs that have been touched, but I don't remember how I integrate the rest of the hitbox collision
+				pass
+
+####################
+class hitboxClass():
+
+	def __init__(self, inID, inSus, inBoxes):
+
+		self.id = inID
+
+		self.sustain = inSus
+
+		self.boxes = inBoxes
+
+####################
+#      /boxes      #
+####################
+
+
+
 #######################################
 #                                     #
 #           character class           #
@@ -236,7 +299,7 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inID=0, inPhysics={}, inPlacement=0, inPos=[None, None]):
+	def __init__(self, inID=0, inPhysics={}, inPlacement=0, inPos=[None, None], costume=1):
 
 		# ID
 		self.id = inID
@@ -279,8 +342,12 @@ class characterClass():
 		self.progress = 1
 		## hitstun counts down
 		self.hitstun = 0
-		# each item in attackBuffer follows [action, time until gets removed from buffer list]
+		## each item in attackBuffer follows [action, time until gets removed from buffer list]
 		self.attackBuffer = []
+
+		# hurtboxes
+		self.hurtboxes = []
+
 
 
 
@@ -340,6 +407,16 @@ class characterClass():
 
 
 
+	def update(self):
+		self.doPhysics()
+		self.hurtboxes = []
+		# temporary, don't use
+		self.hurtboxes = [
+			[()]
+		]
+
+
+
 	def doPhysics(self):
 
 		# use player inputs here
@@ -363,6 +440,17 @@ class characterClass():
 						vel[1] += self.physics["maxFallSpeed"] - vel[1]
 					else:
 						vel[1] += self.physics["gravity"]
+
+
+
+	def moveForVels(self, distance):
+		reps = abs(distance)
+
+
+
+	def checkMapCollision(self):
+
+		for box in self.hurtboxes:
 	
 
 
@@ -430,6 +518,9 @@ class JaneDoeClass(characterClass):
 
 		# position
 		self.dist = inDist
+
+		# character path
+		self.characterPath = Path("characters") / "Jane Doe"
 	
 
 
@@ -491,7 +582,7 @@ class cameraClass():
 
 
 
-	def updateSize(self):
+	def updateBorders(self):
 		scaling = 1/self.getScaling()
 		self.borders = {
 			"left": self.pos[0] - self.size[0]/2*scaling,
@@ -499,8 +590,8 @@ class cameraClass():
 			"top": self.pos[1] - self.size[1]/2*scaling,
 			"bottom": self.pos[1] + self.size[1]/2*scaling
 		}
-		if globals["currentFrame"] == 1:
-			print(self.borders)
+		for b in [self.borders[key] for key in self.borders.keys()]:
+			b = round(b)
 
 #########################################
 #                                       #
@@ -646,7 +737,7 @@ def mainLoop():
 			player.doPhysics()
 
 		for camera in globals["objects"]["camera"]:
-			camera.updateSize()
+			camera.updateBorders()
 
 ############################################################
 #                                                          #
