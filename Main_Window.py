@@ -327,11 +327,11 @@ class characterClass():
 
 		scaling = cam.getScaling(objDist=self.dist)*preferences["screenSizeScale"]
 
-		image = self.findYourSprite()
+		image, offset = self.findYourSprite()
 
-		rect = image.get_rect(center=(scrn.get_width()/2+(self.pos[0]-cam.pos[0])*scaling, scrn.get_height()/2-(self.pos[1]-cam.pos[1])*scaling))
+		rect = image.get_rect(midbottom=(scrn.get_width()/2+(self.pos[0]-cam.pos[0]+offset[0])*scaling, scrn.get_height()/2-(self.pos[1]-cam.pos[1]+offset[1])*scaling))
 
-		scrn.blit(image, (0, 0))
+		scrn.blit(image, rect)
 	
 
 
@@ -366,7 +366,7 @@ JaneDoePhysicsDict = {}
 
 class JaneDoeClass(characterClass):
 
-	def __init__(self, inID=0, inPos=[0, 0], inDist=0):
+	def __init__(self, inID=0, inX=0, inY=-500, inDist=0):
 		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict)
 
 		# ID
@@ -376,16 +376,16 @@ class JaneDoeClass(characterClass):
 		self.sprites = self.loadSprites("Jane Doe", self.id+1)
 
 		# position
-		self.pos = inPos
+		self.pos = [inX, inY]
 		self.dist = inDist
 	
 
 
 	def findYourSprite(self):
 		# this is temporary! don't use this!
-		image = pygame.surface.Surface((50, 50))
+		image = pygame.surface.Surface((25, 25))
 		image.fill("red")
-		return image
+		return image, [0, 0]
 
 characterList["Jane Doe"] = JaneDoeClass
 characterPointPlace[0] = "Jane Doe"
