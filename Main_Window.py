@@ -227,7 +227,7 @@ class playerPointerClass():
 #                                     #
 #######################################
 defaultCharacterPhysicsDict = {
-	"gravity": -10,
+	"gravity": 0,
 	"maxFallSpeed": -50,
 	"movementAccel": 5,
 	"maxRunSpeed": 25,
@@ -236,7 +236,7 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inID=0, inPhysics={}, inPos=[0, 0], inDist=0):
+	def __init__(self, inID=0, inPhysics={}, inPlacement=0, inPos=[None, None]):
 
 		# ID
 		self.id = inID
@@ -249,11 +249,38 @@ class characterClass():
 		for key in inPhysics.keys():
 			self.physics[key] = inPhysics[key]
 		
-		self.velocity = [0, 0]
+		self.velocities = {
+			"self": [0, 0],
+			"dash": [0, 0],
+			"push": [0, 0],
+			"knockback": [0, 0],
+		}
+		self.airtime = 0
+
+		# position
+	
+		if inPlacement == 0:
+			self.direction = -1
+		else:
+			self.direction = 1
+
+		self.pos = [0, 0]
+		if inPos[0] == None:
+			self.pos[0] = self.direction*500
+		else:
+			self.pos[0] = inPos[0]
+		if inPos[0] == None:
+			self.pos[1] = -500
+		else:
+			self.pos[1] = inPos[0]
 
 		# actions
 		self.action = "idle"
 		self.progress = 1
+		## hitstun counts down
+		self.hitstun = 0
+		# each item in attackBuffer follows [action, time until gets removed from buffer list]
+		self.attackBuffer = []
 
 
 
@@ -310,6 +337,32 @@ class characterClass():
 
 	def keysIntoInputs(self):
 		pass
+
+
+
+	def doPhysics(self):
+
+		# use player inputs here
+
+		self.updateVelocities()
+
+		for vel in [self.velocities[key] for key in self.velocities.keys()]:
+			for i in range(2):
+				self.pos[i] += vel[i]
+	
+
+
+	def updateVelocities(self):
+		for key in self.velocities.keys():
+			vel = self.velocities[key]
+
+			if key == "self":
+				if vel[1] > self.physics["maxFallSpeed"]:
+					distToMax = abs(self.physics["maxFallSpeed"] - vel[1])
+					if distToMax < abs(self.physics["gravity"]):
+						vel[1] += self.physics["maxFallSpeed"] - vel[1]
+					else:
+						vel[1] += self.physics["gravity"]
 	
 
 
@@ -366,8 +419,8 @@ JaneDoePhysicsDict = {}
 
 class JaneDoeClass(characterClass):
 
-	def __init__(self, inID=0, inX=0, inY=-500, inDist=0):
-		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict)
+	def __init__(self, inID=0, inX=None, inY=None, inDist=0, inPlac=0):
+		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict, inPlacement=inPlac, inPos=[inX, inY])
 
 		# ID
 		self.objID += "_JaDo"
@@ -376,14 +429,13 @@ class JaneDoeClass(characterClass):
 		self.sprites = self.loadSprites("Jane Doe", self.id+1)
 
 		# position
-		self.pos = [inX, inY]
 		self.dist = inDist
 	
 
 
 	def findYourSprite(self):
 		# this is temporary! don't use this!
-		image = pygame.surface.Surface((25, 25))
+		image = pygame.surface.Surface((100, 200))
 		image.fill("red")
 		return image, [0, 0]
 
@@ -436,6 +488,19 @@ class cameraClass():
 
 	def getScaling(self, objDist=0):
 		return self.scalingFactor**(self.distance-objDist)
+
+
+
+	def updateSize(self):
+		scaling = 1/self.getScaling()
+		self.borders = {
+			"left": self.pos[0] - self.size[0]/2*scaling,
+			"right": self.pos[0] + self.size[0]/2*scaling,
+			"top": self.pos[1] - self.size[1]/2*scaling,
+			"bottom": self.pos[1] + self.size[1]/2*scaling
+		}
+		if globals["currentFrame"] == 1:
+			print(self.borders)
 
 #########################################
 #                                       #
@@ -537,9 +602,9 @@ def load_mainFight():
 	globals["objects"]["camera"].append(cameraClass())
 	for i in range(2):
 		try:
-			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]]())
+			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inPlac=len(globals["objects"]["character"])))
 		except:
-			globals["objects"]["character"].append(characterList[characterPointPlace[0]]())
+			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inPlac=len(globals["objects"]["character"])))
 	globals["objects"]["background"].append(backgroundClass(inType="main combat"))
 
 #########################################
@@ -560,6 +625,7 @@ def load_mainFight():
 #                                                         #
 ###########################################################
 def mainLoop():
+	globals["currentFrame"] += 1
 
 	# main menu
 	if int(globals["gameState"]/100) == 1:
@@ -575,6 +641,12 @@ def mainLoop():
 
 		if globals["gameState"] == 200:
 			load_mainFight()
+
+		for player in globals["objects"]["character"]:
+			player.doPhysics()
+
+		for camera in globals["objects"]["camera"]:
+			camera.updateSize()
 
 ############################################################
 #                                                          #
@@ -603,7 +675,7 @@ def renderAll():
 		for obj in globals["objects"][ls]:
 			try:
 				obj.draw()
-			except:
+			except AttributeError:
 				pass
 	
 	pygame.display.update()
@@ -647,8 +719,6 @@ while globals["running"]:
 	#             FRAME DUTIES             #
 	#                                      #
 	########################################
-	globals["currentFrame"] += 1
-
 	# pygame events
 	globals["pygameEvents"] = pygame.event.get()
 	for event in globals["pygameEvents"]:
