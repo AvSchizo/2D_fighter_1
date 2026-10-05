@@ -264,8 +264,10 @@ class hurtboxClass():
 					if p[0] > pointA[0] and p[0] < pointB[0] and p[1] > pointA[1] and p[1] < pointB[1]:
 						collided = True
 			if collided:
-				# I don't remember what I was fucking going with here, something about adding the hitbox id to touched, which is the list of hitbox IDs that have been touched, but I don't remember how I integrate the rest of the hitbox collision
-				pass
+				return hitbox
+
+		# no hitboxes touched
+		return None
 
 ####################
 class hitboxClass():
@@ -476,9 +478,16 @@ class characterClass():
 	
 
 
-	# def findYourSprite(self):
-	# 	# this is here so no one's confused, replace it when defining the character
-	# 	pass
+	def findYourSprite(self, specCam=None):
+		if specCam == None:
+			try:
+				cam = globals["objects"]["camera"][0]
+			except:
+				cam = cameraClass()
+		else:
+			cam = specCam
+
+		return cam.getScaling(objDist=self.dist)*preferences["screenSizeScaling"]
 
 ########################################
 #                                      #
@@ -525,10 +534,15 @@ class JaneDoeClass(characterClass):
 
 
 	def findYourSprite(self):
+		scaling = super().findYourSprite()
 		# this is temporary! don't use this!
-		image = pygame.surface.Surface((100, 200))
-		image.fill("red")
-		return image, [0, 0]
+		surf = pygame.surface.Surface((100, 200))
+		surf.fill("red")
+		surfX = surf.get_width()
+		surfY = surf.get_height()
+		image = pygame.transform.scale(surf, (surfX*scaling, surfY*scaling))
+		offset = [0, 0]
+		return image, offset
 
 characterList["Jane Doe"] = JaneDoeClass
 characterPointPlace[0] = "Jane Doe"
@@ -696,6 +710,8 @@ def load_mainFight():
 			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inPlac=len(globals["objects"]["character"])))
 		except:
 			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inPlac=len(globals["objects"]["character"])))
+	globals["objects"]["character"][0].otherChar = globals["objects"]["character"][1]
+	globals["objects"]["character"][1].otherChar = globals["objects"]["character"][0]
 	globals["objects"]["background"].append(backgroundClass(inType="main combat"))
 
 #########################################
