@@ -227,7 +227,7 @@ class playerPointerClass():
 ###################
 class hurtboxClass():
 
-	def __init__(self, inPoints, inID, inTangibility=0):
+	def __init__(self, pos, inPoints, inID, inTangibility=0):
 
 		# [topleft, bottomright, topright, bottomleft]
 		self.points = [
@@ -264,21 +264,55 @@ class hurtboxClass():
 					if p[0] > pointA[0] and p[0] < pointB[0] and p[1] > pointA[1] and p[1] < pointB[1]:
 						collided = True
 			if collided:
-				return hitbox
+				info = [hitbox, self.tangibility]
+				return info
 
 		# no hitboxes touched
-		return None
+		return [None]
 
 ####################
 class hitboxClass():
 
-	def __init__(self, inID, inSus, inBoxes):
+	def __init__(self, inID, inSus, pos, inBoxes, inFollow=False):
 
 		self.id = inID
 
 		self.sustain = inSus
 
-		self.boxes = inBoxes
+		self.refPos = pos
+		self.refBoxes = inBoxes
+		self.follow(pos=self.refPos)
+
+		self.following = inFollow
+
+
+
+	def update(self, pos=None):
+		if self.sustain > 0:
+			self.sustain -= 1
+
+		if self.following:
+			self.follow(pos)
+
+
+
+	def follow(self, inPos=None, gonnaReturn=False):
+		if inPos == None:
+			pos = self.refPos
+		else:
+			pos = inPos
+			self.refPos = inPos
+		bo = []
+		for box in self.refBoxes:
+			forBox = []
+			for i in range(2):
+				forBox.append(box[i]+pos[i])
+			bo.append(forBox)
+		if gonnaReturn:
+			# use gonnaReturn if you just want the updated boxes without actually updating them
+			return bo
+		else:
+			self.boxes = bo
 
 ####################
 #      /boxes      #
@@ -414,7 +448,7 @@ class characterClass():
 		self.hurtboxes = []
 		# temporary, don't use
 		self.hurtboxes = [
-			[()]
+			hurtboxClass(self.pos)
 		]
 
 
