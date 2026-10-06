@@ -378,12 +378,15 @@ class characterClass():
 		self.progress = 1
 		## hitstun counts down
 		self.hitstun = 0
+		## stun after blocking attack, counts down
+		self.blockstun = 0
 		## each item in attackBuffer follows [action, time until gets removed from buffer list]
 		self.attackBuffer = []
 
-		# hurtboxes
+		# boxes
 		self.hurtboxes = []
-
+		self.hitboxes = []
+		self.othersTouched = []
 
 
 
@@ -444,12 +447,21 @@ class characterClass():
 
 
 	def update(self):
+		self.updateProgress()
 		self.doPhysics()
+		# hitboxes
+		## nadda so far, do this later
+		# hurtboxes
 		self.hurtboxes = []
-		# temporary, don't use
+		## temporary, don't use
 		self.hurtboxes = [
-			hurtboxClass(self.pos)
+			hurtboxClass(self.pos, [(-50, 200), (50, 0)], 0),
 		]
+		for hurtbox in self.hurtboxes:
+			info = hurtbox.hitboxCollision(self.otherChar, self.othersTouched)
+			if info[0] != None:
+				hitbox = info[1]
+				self.othersTouched.append(hitbox.id)
 
 
 
@@ -459,6 +471,7 @@ class characterClass():
 
 		self.updateVelocities()
 
+		# temp movement
 		for vel in [self.velocities[key] for key in self.velocities.keys()]:
 			for i in range(2):
 				self.pos[i] += vel[i]
@@ -487,6 +500,18 @@ class characterClass():
 	def checkMapCollision(self):
 
 		for box in self.hurtboxes:
+			if box.points[1][1] <= -500:
+				return True
+
+		return False
+
+
+
+	def touchedGround(self):
+		if self.airtime > 0:
+			self.action = "idle"
+			self.progress = 1
+		self.airtime = 0
 	
 
 
@@ -577,6 +602,15 @@ class JaneDoeClass(characterClass):
 		image = pygame.transform.scale(surf, (surfX*scaling, surfY*scaling))
 		offset = [0, 0]
 		return image, offset
+
+
+
+	def updateProgress(self):
+		if self.action = "idle":
+			if self.progress >= 1:
+				self.progress = 1
+			else:
+				self.progress = 1
 
 characterList["Jane Doe"] = JaneDoeClass
 characterPointPlace[0] = "Jane Doe"
@@ -784,7 +818,7 @@ def mainLoop():
 			load_mainFight()
 
 		for player in globals["objects"]["character"]:
-			player.doPhysics()
+			player.update()
 
 		for camera in globals["objects"]["camera"]:
 			camera.updateBorders()
