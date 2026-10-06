@@ -23,6 +23,8 @@ from savePreferences import savePreferences
 defaultPreferences = {
 	"screenSizeScale": .5,
 	"playerWithControllerPriority": 1,
+	"webMode": False,
+	"maxFPS": 75,
 }
 
 #
@@ -57,9 +59,16 @@ globals = {
 	"substate": 0,
 	"tickRate": 60,
 	"FPS": 75,
+	# you can get positions bigger than these, this just gives a reference for how to scale things
 	"spacetimeSize": [3200, 1800],
 	"pygameEvents": [],
 	"userEvents": [],
+	"mapBounds": {
+		"bottom": -500,
+		"left": -1800,
+		"right": 1800,
+		"top": None
+	},
 }
 
 
@@ -231,11 +240,14 @@ class hurtboxClass():
 
 		# [topleft, bottomright, topright, bottomleft]
 		self.points = [
-			inPoints[0],
-			inPoints[1],
-			(inPoints[1], inPoints[0]),
-			(inPoints[0], inPoints[1]),
+			list(inPoints[0]),
+			list(inPoints[1]),
+			[inPoints[1][0], inPoints[0][1]],
+			[inPoints[0][0], inPoints[1][1]],
 		]
+		for e in range(4):
+			for i in range(2):
+				self.points[e][i] += pos[i]
 
 		self.id = inID
 
@@ -273,7 +285,7 @@ class hurtboxClass():
 ####################
 class hitboxClass():
 
-	def __init__(self, inID, inSus, pos, inBoxes, inFollow=False):
+	def __init__(self, inID, inSus, pos, inBoxes, info, inFollow=False):
 
 		self.id = inID
 
@@ -284,6 +296,8 @@ class hitboxClass():
 		self.follow(pos=self.refPos)
 
 		self.following = inFollow
+
+		self.info = info
 
 
 
@@ -326,7 +340,7 @@ class hitboxClass():
 #                                     #
 #######################################
 defaultCharacterPhysicsDict = {
-	"gravity": 0,
+	"gravity": -1,
 	"maxFallSpeed": -50,
 	"movementAccel": 5,
 	"maxRunSpeed": 25,
@@ -369,7 +383,7 @@ class characterClass():
 		else:
 			self.pos[0] = inPos[0]
 		if inPos[0] == None:
-			self.pos[1] = -500
+			self.pos[1] = 0
 		else:
 			self.pos[1] = inPos[0]
 
@@ -386,6 +400,7 @@ class characterClass():
 		# boxes
 		self.hurtboxes = []
 		self.hitboxes = []
+		self.hitboxID = 0
 		self.othersTouched = []
 
 
@@ -446,22 +461,24 @@ class characterClass():
 
 
 
-	def update(self):
-		self.updateProgress()
-		self.doPhysics()
-		# hitboxes
-		## nadda so far, do this later
-		# hurtboxes
-		self.hurtboxes = []
-		## temporary, don't use
-		self.hurtboxes = [
-			hurtboxClass(self.pos, [(-50, 200), (50, 0)], 0),
-		]
-		for hurtbox in self.hurtboxes:
-			info = hurtbox.hitboxCollision(self.otherChar, self.othersTouched)
-			if info[0] != None:
-				hitbox = info[1]
-				self.othersTouched.append(hitbox.id)
+	def update(self, segments=[1, 2]):
+
+		if 1 in segments:
+
+			self.updateProgress()
+			self.doPhysics()
+			# hitboxes
+			## nadda so far, do this later
+			# hurtboxes
+		
+		if 2 in segments:
+
+			self.hurtboxes = self.findHurtboxes()
+			for hurtbox in self.hurtboxes:
+				info = hurtbox.hitboxCollision(self.otherChar.hitboxes, self.othersTouched)
+				if info[0] != None:
+					hitbox = info[1]
+					self.othersTouched.append(hitbox.id)
 
 
 
@@ -471,10 +488,30 @@ class characterClass():
 
 		self.updateVelocities()
 
-		# temp movement
-		for vel in [self.velocities[key] for key in self.velocities.keys()]:
-			for i in range(2):
-				self.pos[i] += vel[i]
+		# movement
+		for key in self.velocities.keys():
+			vel = self.velocities[key]
+
+			# vertical movement
+			if self.moveForVels(vel[1], 1) == "stopped" and vel[1] < 0:
+				self.touchedGround()
+				vel[1] = 0
+
+			# horizontal movement
+			self.moveForVels(vel[0], 0)
+		
+		# safety check
+		while self.checkMapCollision(t=[0]):
+			self.pos[1] += 1
+		
+		while self.checkMapCollision(t=[1]):
+			self.pos[0] += 1
+		
+		while self.checkMapCollision(t=[2]):
+			self.pos[0] -= 1
+		
+		while self.checkMapCollision(t=[3]):
+			self.pos[1] -= 1
 	
 
 
@@ -492,16 +529,47 @@ class characterClass():
 
 
 
-	def moveForVels(self, distance):
+	def moveForVels(self, distance, dir):
 		reps = abs(distance)
 
+		for i in range(reps):
+			lastPos = self.pos[dir]
+			self.pos[dir] += distance/reps
+			if self.checkMapCollision():
+				self.pos[dir] = lastPos
+				return "stopped"
+		
+		return "allG"
 
 
-	def checkMapCollision(self):
+
+	def checkMapCollision(self, t=[0, 1, 2, 3]):
+		# 0: floor collision
+		# 1: left wall collision
+		# 2: right wall collision
+		# 3: ceiling collision
 
 		for box in self.hurtboxes:
-			if box.points[1][1] <= -500:
-				return True
+
+			if globals["mapBounds"]["bottom"] != None:
+				if box.points[1][1] <= globals["mapBounds"]["bottom"]:
+					if 0 in t:
+						return True
+			
+			if globals["mapBounds"]["left"] != None:
+				if box.points[0][0] <= globals["mapBounds"]["left"]:
+					if 1 in t:
+						return True
+
+			if globals["mapBounds"]["right"] != None:
+				if box.points[1][0] >= globals["mapBounds"]["right"]:
+					if 2 in t:
+						return True
+
+			if globals["mapBounds"]["top"] != None:
+				if box.points[0][1] >= globals["mapBounds"]["top"]:
+					if 2 in t:
+						return True
 
 		return False
 
@@ -512,6 +580,7 @@ class characterClass():
 			self.action = "idle"
 			self.progress = 1
 		self.airtime = 0
+		self.velocities["self"][1] = 0
 	
 
 
@@ -524,29 +593,18 @@ class characterClass():
 				cam = cameraClass()
 		else:
 			cam = specCam
+
+		scaling = cam.getScaling(objDist=self.dist)*preferences["screenSizeScale"]
 		
 		scrn = globals["screen"]
 
-		scaling = cam.getScaling(objDist=self.dist)*preferences["screenSizeScale"]
+		for pack in self.findYourSprite():
 
-		image, offset = self.findYourSprite()
+			image, offset = pack
 
-		rect = image.get_rect(midbottom=(scrn.get_width()/2+(self.pos[0]-cam.pos[0]+offset[0])*scaling, scrn.get_height()/2-(self.pos[1]-cam.pos[1]+offset[1])*scaling))
+			rect = image.get_rect(midbottom=(scrn.get_width()/2+(self.pos[0]-cam.pos[0]+offset[0])*scaling, scrn.get_height()/2-(self.pos[1]-cam.pos[1]+offset[1])*scaling))
 
-		scrn.blit(image, rect)
-	
-
-
-	def findYourSprite(self, specCam=None):
-		if specCam == None:
-			try:
-				cam = globals["objects"]["camera"][0]
-			except:
-				cam = cameraClass()
-		else:
-			cam = specCam
-
-		return cam.getScaling(objDist=self.dist)*preferences["screenSizeScaling"]
+			scrn.blit(image, rect)
 
 ########################################
 #                                      #
@@ -593,24 +651,39 @@ class JaneDoeClass(characterClass):
 
 
 	def findYourSprite(self):
-		scaling = super().findYourSprite()
-		# this is temporary! don't use this!
-		surf = pygame.surface.Surface((100, 200))
-		surf.fill("red")
-		surfX = surf.get_width()
-		surfY = surf.get_height()
-		image = pygame.transform.scale(surf, (surfX*scaling, surfY*scaling))
-		offset = [0, 0]
-		return image, offset
+
+		packs = []
+
+		if preferences["webMode"]:
+			surf = pygame.surface.Surface((100, 200))
+			surf.fill("red")
+			image = surf
+			offset = [0, 0]
+			packs.append([image, offset])
+		
+
+		else:
+			pass
+			# put actual sprites here
+			# it's very possible you don't have more than one pack in packs
+
+		
+		return packs
 
 
 
 	def updateProgress(self):
-		if self.action = "idle":
+		if self.action == "idle":
 			if self.progress >= 1:
 				self.progress = 1
 			else:
 				self.progress = 1
+	
+
+
+	def findHurtboxes(self):
+		# temp, don't use
+		return [hurtboxClass(self.pos, [(-50, 200), (50, 0)], 0)]
 
 characterList["Jane Doe"] = JaneDoeClass
 characterPointPlace[0] = "Jane Doe"
@@ -817,8 +890,11 @@ def mainLoop():
 		if globals["gameState"] == 200:
 			load_mainFight()
 
-		for player in globals["objects"]["character"]:
-			player.update()
+
+		for i in range(2):
+			for player in globals["objects"]["character"]:
+				player.update(segments=[i+1])
+
 
 		for camera in globals["objects"]["camera"]:
 			camera.updateBorders()
@@ -950,4 +1026,4 @@ while globals["running"]:
 
 
 
-	clock.tick(globals["FPS"])
+	clock.tick(preferences["maxFPS"])
