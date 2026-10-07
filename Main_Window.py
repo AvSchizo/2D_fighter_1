@@ -64,7 +64,7 @@ globals = {
 	"pygameEvents": [],
 	"userEvents": [],
 	"mapBounds": {
-		"bottom": -500,
+		"bottom": -600,
 		"left": -1800,
 		"right": 1800,
 		"top": None
@@ -466,7 +466,7 @@ class characterClass():
 		if 1 in segments:
 
 			self.updateProgress()
-			self.doPhysics()
+			# player inputs here
 			# hitboxes
 			## nadda so far, do this later
 			# hurtboxes
@@ -479,12 +479,14 @@ class characterClass():
 				if info[0] != None:
 					hitbox = info[1]
 					self.othersTouched.append(hitbox.id)
+					# all the rest of getting hit goes here
+
+			self.doPhysics()
+
 
 
 
 	def doPhysics(self):
-
-		# use player inputs here
 
 		self.updateVelocities()
 
@@ -549,26 +551,26 @@ class characterClass():
 		# 2: right wall collision
 		# 3: ceiling collision
 
-		for box in self.hurtboxes:
+		for box in self.findCollisionbox():
 
 			if globals["mapBounds"]["bottom"] != None:
-				if box.points[1][1] <= globals["mapBounds"]["bottom"]:
+				if box[1][1] <= globals["mapBounds"]["bottom"]:
 					if 0 in t:
 						return True
 			
 			if globals["mapBounds"]["left"] != None:
-				if box.points[0][0] <= globals["mapBounds"]["left"]:
+				if box[0][0] <= globals["mapBounds"]["left"]:
 					if 1 in t:
 						return True
 
 			if globals["mapBounds"]["right"] != None:
-				if box.points[1][0] >= globals["mapBounds"]["right"]:
+				if box[1][0] >= globals["mapBounds"]["right"]:
 					if 2 in t:
 						return True
 
 			if globals["mapBounds"]["top"] != None:
-				if box.points[0][1] >= globals["mapBounds"]["top"]:
-					if 2 in t:
+				if box[0][1] >= globals["mapBounds"]["top"]:
+					if 3 in t:
 						return True
 
 		return False
@@ -601,6 +603,7 @@ class characterClass():
 		for pack in self.findYourSprite():
 
 			image, offset = pack
+			image = pygame.transform.scale(image, [image.get_width()*scaling, image.get_height()*scaling])
 
 			rect = image.get_rect(midbottom=(scrn.get_width()/2+(self.pos[0]-cam.pos[0]+offset[0])*scaling, scrn.get_height()/2-(self.pos[1]-cam.pos[1]+offset[1])*scaling))
 
@@ -651,13 +654,14 @@ class JaneDoeClass(characterClass):
 
 
 	def findYourSprite(self):
+		# you may have to scale the sprite to the correct size if the actual file is bigger than it should be
+		# this is separate from the screen and camera scaling
 
 		packs = []
 
 		if preferences["webMode"]:
-			surf = pygame.surface.Surface((100, 200))
-			surf.fill("red")
-			image = surf
+			image = pygame.surface.Surface((100, 200))
+			image.fill("red")
 			offset = [0, 0]
 			packs.append([image, offset])
 		
@@ -684,6 +688,27 @@ class JaneDoeClass(characterClass):
 	def findHurtboxes(self):
 		# temp, don't use
 		return [hurtboxClass(self.pos, [(-50, 200), (50, 0)], 0)]
+	
+
+
+	def findCollisionbox(self, inPos=None):
+
+		if inPos == None:
+			pos = self.pos
+		else:
+			pos = inPos
+
+		boxes = []
+
+		# temp, don't use
+		toAdd = [
+			[pos[0]-50, pos[1]+200],
+			[pos[0]+50, pos[1]]
+		]
+		boxes.append(toAdd)
+		#
+
+		return boxes
 
 characterList["Jane Doe"] = JaneDoeClass
 characterPointPlace[0] = "Jane Doe"
