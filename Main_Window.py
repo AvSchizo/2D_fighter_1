@@ -636,8 +636,8 @@ JaneDoePhysicsDict = {}
 
 class JaneDoeClass(characterClass):
 
-	def __init__(self, inID=0, inX=None, inY=None, inDist=0, inPlac=0):
-		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict, inPlacement=inPlac, inPos=[inX, inY])
+	def __init__(self, inID=0, inX=None, inY=None, inDist=0):
+		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict, inPos=[inX, inY])
 
 		# ID
 		self.objID += "_JaDo"
@@ -873,9 +873,9 @@ def load_mainFight():
 	globals["objects"]["camera"].append(cameraClass())
 	for i in range(2):
 		try:
-			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inPlac=len(globals["objects"]["character"])))
+			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inID=len(globals["objects"]["character"])))
 		except:
-			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inPlac=len(globals["objects"]["character"])))
+			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inID=len(globals["objects"]["character"])))
 	globals["objects"]["character"][0].otherChar = globals["objects"]["character"][1]
 	globals["objects"]["character"][1].otherChar = globals["objects"]["character"][0]
 	globals["objects"]["background"].append(backgroundClass(inType="main combat"))
