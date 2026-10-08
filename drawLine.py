@@ -1,6 +1,5 @@
 import pygame
 
-
 def drawLine(points, camera, color, width, screen, prefs):
 
 	scaling = prefs["screenSizeScale"]*camera.getScaling()
