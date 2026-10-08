@@ -285,11 +285,14 @@ class hurtboxClass():
 ####################
 class hitboxClass():
 
-	def __init__(self, inID, inSus, pos, inBoxes, info, inFollow=False):
+	def __init__(self, inID, inSus, pos, inBoxes, inType, info, inFollow=False):
 
 		self.id = inID
 
+		# if at -1, won't disappear
 		self.sustain = inSus
+
+		self.type = inType
 
 		self.refPos = pos
 		self.refBoxes = inBoxes
@@ -349,7 +352,7 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inID=0, inPhysics={}, inPlacement=0, inPos=[None, None], costume=1):
+	def __init__(self, inID=0, inPhysics={}, inPlacement=0, inPos=[None, None]):
 
 		# ID
 		self.id = inID
@@ -371,21 +374,15 @@ class characterClass():
 		self.airtime = 0
 
 		# position
-	
-		if inPlacement == 0:
-			self.direction = -1
-		else:
-			self.direction = 1
+		self.direction = 1
 
 		self.pos = [0, 0]
-		if inPos[0] == None:
-			self.pos[0] = self.direction*500
-		else:
+		if inPos[0] != None:
 			self.pos[0] = inPos[0]
-		if inPos[0] == None:
-			self.pos[1] = 0
+		if inPos[1] == None:
+			self.pos[1] = globals["mapBounds"]["bottom"]
 		else:
-			self.pos[1] = inPos[0]
+			self.pos[1] = inPos[1]
 
 		# actions
 		self.action = "idle"
@@ -401,7 +398,11 @@ class characterClass():
 		self.hurtboxes = []
 		self.hitboxes = []
 		self.hitboxID = 0
+		## list of enemy hitboxes touched
 		self.othersTouched = []
+
+		# health
+		self.health = 144
 
 
 
@@ -453,23 +454,56 @@ class characterClass():
 				returnDict[ack].append(pygame.image.load(s).convert_alpha())
 
 		return returnDict
+	
 
+
+	def goToStart(self, placement=0):
+		if placement == 0:
+			self.pos[0] = -500
+		else:
+			self.pos[0] = 500
+	
+
+
+	def findOtherChar(self, place):
+		self.otherChar = globals["objects"]["character"][place]
+		
 
 
 	def keysIntoInputs(self):
 		pass
+	
 
+
+	def findDirection(self, re=False):
+		if self.otherChar.pos[0] > self.pos[0]:
+			if re:
+				return 1
+			else:
+				self.direction = 1
+		elif self.otherChar.pos[0] < self.pos[0]:
+			if re:
+				return -1
+			else:
+				self.direction = -1
+		elif re:
+			return None
 
 
 	def update(self, segments=[1, 2]):
 
 		if 1 in segments:
 
-			self.updateProgress()
-			# player inputs here
-			# hitboxes
-			## nadda so far, do this later
-			# hurtboxes
+			if self.hitstun > 0:
+				self.hitstun -= 1
+			elif self.blockstun > 0:
+				self.blockstun -= 1
+			
+			else:
+				self.updateProgress()
+				# player inputs here
+				# hitboxes
+				## nadda so far, do this later
 		
 		if 2 in segments:
 
@@ -636,14 +670,15 @@ JaneDoePhysicsDict = {}
 
 class JaneDoeClass(characterClass):
 
-	def __init__(self, inID=0, inX=None, inY=None, inDist=0):
+	def __init__(self, inID=0, inX=None, inY=None, inDist=0, costume=1):
 		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict, inPos=[inX, inY])
 
 		# ID
 		self.objID += "_JaDo"
 
 		# sprites
-		self.sprites = self.loadSprites("Jane Doe", self.id+1)
+		self.costume = costume
+		self.sprites = self.loadSprites("Jane Doe", self.costume)
 
 		# position
 		self.dist = inDist
@@ -660,9 +695,27 @@ class JaneDoeClass(characterClass):
 		packs = []
 
 		if preferences["webMode"]:
+
+			# body
 			image = pygame.surface.Surface((100, 200))
-			image.fill("red")
+			if self.costume == 1:
+				image.fill("red")
+			elif self.costume == 2:
+				image.fill("blue")
+			else:
+				image.fill("black")
 			offset = [0, 0]
+			packs.append([image, offset])
+
+			# head
+			image = pygame.surface.Surface((50, 50))
+			if self.costume == 1:
+				image.fill((220, 177, 135))
+			elif self.costume == 2:
+				image.fill((214, 177, 140))
+			else:
+				image.fill((214, 177, 135))
+			offset = [50*self.direction, 150]
 			packs.append([image, offset])
 		
 
@@ -677,6 +730,9 @@ class JaneDoeClass(characterClass):
 
 
 	def updateProgress(self):
+
+		self.findDirection()
+
 		if self.action == "idle":
 			if self.progress >= 1:
 				self.progress = 1
@@ -686,8 +742,8 @@ class JaneDoeClass(characterClass):
 
 
 	def findHurtboxes(self):
-		# temp, don't use
-		return [hurtboxClass(self.pos, [(-50, 200), (50, 0)], 0)]
+		if self.action == "idle":
+			return [hurtboxClass(self.pos, [(-50, 200), (50, 0)], 0)]
 	
 
 
@@ -871,13 +927,18 @@ def load_mainFight():
 
 	resetObjects()
 	globals["objects"]["camera"].append(cameraClass())
+
 	for i in range(2):
 		try:
 			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inID=len(globals["objects"]["character"])))
 		except:
 			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inID=len(globals["objects"]["character"])))
-	globals["objects"]["character"][0].otherChar = globals["objects"]["character"][1]
-	globals["objects"]["character"][1].otherChar = globals["objects"]["character"][0]
+
+	for i in range(2):
+		globals["objects"]["character"][i].goToStart(placement=i)
+	for i in range(2):
+		globals["objects"]["character"][i].findOtherChar(place=(-i+1))
+
 	globals["objects"]["background"].append(backgroundClass(inType="main combat"))
 
 #########################################
