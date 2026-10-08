@@ -13,6 +13,31 @@ decimal = Decimal
 from pathlib import Path
 
 
+# draw line
+from drawLine import drawLine
+def drawLine(points, inColor=None, specCam=None, inWidth=None):
+	
+	if inColor == None:
+		color = "red"
+	else:
+		color = inColor
+
+	if specCam == None:
+		try:
+			cam = globals["objects"]["camera"][0]
+		except IndexError:
+			cam = cameraClass()
+	else:
+		cam = specCam
+	
+	if inWidth == None:
+		width = 1
+	else:
+		width = inWidth
+
+	drawLine(points, cam, color, width, globals["screen"], preferences)
+
+
 ###################
 #   preferences   #
 ###################
