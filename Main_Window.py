@@ -14,9 +14,9 @@ from pathlib import Path
 
 
 # draw line
-from drawLine import drawLine
 def drawLine(points, inColor=None, specCam=None, inWidth=None):
-	
+	from drawLine import drawLine
+
 	if inColor == None:
 		color = "red"
 	else:
@@ -31,7 +31,7 @@ def drawLine(points, inColor=None, specCam=None, inWidth=None):
 		cam = specCam
 	
 	if inWidth == None:
-		width = 1
+		width = 10
 	else:
 		width = inWidth
 
@@ -50,6 +50,10 @@ defaultPreferences = {
 	"playerWithControllerPriority": 1,
 	"webMode": False,
 	"maxFPS": 75,
+	"collisionDrawing": {
+		"active": True,
+		"floorColor": "red",
+	},
 }
 
 #
@@ -432,6 +436,9 @@ class characterClass():
 
 
 	def loadSprites(self, characterName, version=1):
+		if preferences["webMode"]:
+			return
+
 		spritePath = Path("characters") / characterName / "sprites" / f"alt{version}"
 
 		returnDict = {}
@@ -645,6 +652,21 @@ class characterClass():
 	
 
 
+	def drawCollisionbox(self, color="green", width=1):
+		for box in self.findCollisionbox():
+
+			p = [
+				box[0],
+				[box[1][0], box[0][1]],
+				box[1],
+				[box[0][0], box[1][1]]
+			]
+
+			for i in range(4):
+				drawLine([p[i-1], p[i]], inColor=color, inWidth=width)
+	
+
+
 	def draw(self, specCam=None):
 
 		if specCam == None:
@@ -740,7 +762,7 @@ class JaneDoeClass(characterClass):
 				image.fill((214, 177, 140))
 			else:
 				image.fill((214, 177, 135))
-			offset = [50*self.direction, 150]
+			offset = [5*self.direction, 200]
 			packs.append([image, offset])
 		
 
@@ -851,8 +873,8 @@ class cameraClass():
 			"top": self.pos[1] - self.size[1]/2*scaling,
 			"bottom": self.pos[1] + self.size[1]/2*scaling
 		}
-		for b in [self.borders[key] for key in self.borders.keys()]:
-			b = round(b)
+		for key in self.borders.keys():
+			self.borders[key] = round(self.borders[key])
 
 #########################################
 #                                       #
@@ -954,10 +976,14 @@ def load_mainFight():
 	globals["objects"]["camera"].append(cameraClass())
 
 	for i in range(2):
+		info = [
+			len(globals["objects"]["character"]),
+			i+1,
+		]
 		try:
-			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inID=len(globals["objects"]["character"])))
+			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inID=info[0], costume=info[1]))
 		except:
-			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inID=len(globals["objects"]["character"])))
+			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inID=info[0], costume=info[1]))
 
 	for i in range(2):
 		globals["objects"]["character"][i].goToStart(placement=i)
@@ -1033,12 +1059,25 @@ def renderAll():
 
 	globals["screen"].fill("lavender")
 
+
 	for ls in globals["objects"].keys():
 		for obj in globals["objects"][ls]:
 			try:
 				obj.draw()
 			except AttributeError:
 				pass
+	
+
+	if preferences["collisionDrawing"]["active"]:
+		for player in globals["objects"]["character"]:
+			player.drawCollisionbox()
+		cheakyLilDist = 999999
+		points = [
+			[-cheakyLilDist, globals["mapBounds"]["bottom"]],
+			[cheakyLilDist, globals["mapBounds"]["bottom"]]
+		]
+		drawLine(points, inColor=preferences["collisionDrawing"]["floorColor"])
+
 	
 	pygame.display.update()
 
