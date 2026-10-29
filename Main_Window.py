@@ -54,6 +54,20 @@ defaultPreferences = {
 		"active": True,
 		"floorColor": "red",
 	},
+	"playerControls": [
+		{
+			"up": pygame.K_UP,
+			"down": pygame.K_DOWN,
+			"left": pygame.K_LEFT,
+			"right": pygame.K_RIGHT,
+		},
+		{
+			"up": pygame.K_KP_8,
+			"down": pygame.K_KP_5,
+			"left": pygame.K_KP_4,
+			"right": pygame.K_KP_6,
+		},
+	],
 }
 
 #
@@ -423,6 +437,9 @@ class characterClass():
 		## each item in attackBuffer follows [action, time until gets removed from buffer list]
 		self.attackBuffer = []
 
+		# inputs
+		self.allInputs = []
+
 		# boxes
 		self.hurtboxes = []
 		self.hitboxes = []
@@ -503,7 +520,13 @@ class characterClass():
 
 
 	def keysIntoInputs(self):
-		pass
+
+		checkingInputs = preferences["playerControls"][self.id]
+
+		while len(self.allInputs) < globals["currentFrame"]:
+
+			# turning key into ins
+			pass
 	
 
 
