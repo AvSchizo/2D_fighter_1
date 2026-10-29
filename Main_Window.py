@@ -48,7 +48,7 @@ from savePreferences import savePreferences
 defaultPreferences = {
 	"screenSizeScale": .5,
 	"playerWithControllerPriority": 1,
-	"webMode": False,
+	"webMode": True,
 	"maxFPS": 75,
 	"collisionDrawing": {
 		"active": True,
@@ -395,7 +395,11 @@ defaultCharacterPhysicsDict = {
 
 class characterClass():
 
-	def __init__(self, inID=0, inPhysics={}, inPlacement=0, inPos=[None, None]):
+	def __init__(self, inID=0, inPhysics={}, inPlacement=0, inPos=[None, None], gs=None, pf=None):
+
+		# tables
+		self.gs = gs
+		self.pf = pf
 
 		# ID
 		self.id = inID
@@ -423,7 +427,7 @@ class characterClass():
 		if inPos[0] != None:
 			self.pos[0] = inPos[0]
 		if inPos[1] == None:
-			self.pos[1] = globals["mapBounds"]["bottom"]
+			self.pos[1] = self.gs["mapBounds"]["bottom"]
 		else:
 			self.pos[1] = inPos[1]
 
@@ -453,7 +457,7 @@ class characterClass():
 
 
 	def loadSprites(self, characterName, version=1):
-		if preferences["webMode"]:
+		if self.pf["webMode"]:
 			return
 
 		spritePath = Path("characters") / characterName / "sprites" / f"alt{version}"
@@ -482,7 +486,7 @@ class characterClass():
 							try:
 								dim.append(int(wa[1].split("-")[i]))
 							except ValueError:
-								globals["userEvents"].append(eventClass(inType="error", inName="characterClass, loadSprites()", inInfo=["incorrect sprite sheet dimensions", spritePath]))
+								self.gs["userEvents"].append(eventClass(inType="error", inName="characterClass, loadSprites()", inInfo=["incorrect sprite sheet dimensions", spritePath]))
 								dim.append(1)
 				else:
 					she = False
@@ -515,18 +519,37 @@ class characterClass():
 
 
 	def findOtherChar(self, place):
-		self.otherChar = globals["objects"]["character"][place]
+		self.otherChar = self.gs["objects"]["character"][place]
 		
 
 
-	def keysIntoInputs(self):
+	def keysIntoInputs(self, setting=True):
 
-		checkingInputs = preferences["playerControls"][self.id]
+		checkingInputs = self.pf["playerControls"][self.id]
+		piu = pygame.key.get_pressed()
 
-		while len(self.allInputs) < globals["currentFrame"]:
+		while len(self.allInputs) < self.gs["currentFrame"]:
 
 			# turning key into ins
-			pass
+			insNow = []
+
+			# horz
+			insNow.append(piu[checkingInputs["right"]]-piu[checkingInputs["left"]])
+			# vert
+			insNow.append(piu[checkingInputs["up"]]-piu[checkingInputs["down"]])
+
+
+			self.allInputs.append(insNow)
+		
+	
+		if setting:
+			self.cin = self.allInputs[self.gs["currentFrame"]-1]
+	
+
+
+	def dealWithMovement(self):
+
+		self.velocities["self"][0] = self.cin[0]
 	
 
 
@@ -577,6 +600,11 @@ class characterClass():
 
 	def doPhysics(self):
 
+		# inputs
+		self.keysIntoInputs()
+		self.dealWithMovement()
+
+		# ve'oci'ies
 		self.updateVelocities()
 
 		# movement
@@ -642,23 +670,23 @@ class characterClass():
 
 		for box in self.findCollisionbox():
 
-			if globals["mapBounds"]["bottom"] != None:
-				if box[1][1] <= globals["mapBounds"]["bottom"]:
+			if self.gs["mapBounds"]["bottom"] != None:
+				if box[1][1] <= self.gs["mapBounds"]["bottom"]:
 					if 0 in t:
 						return True
 			
-			if globals["mapBounds"]["left"] != None:
-				if box[0][0] <= globals["mapBounds"]["left"]:
+			if self.gs["mapBounds"]["left"] != None:
+				if box[0][0] <= self.gs["mapBounds"]["left"]:
 					if 1 in t:
 						return True
 
-			if globals["mapBounds"]["right"] != None:
-				if box[1][0] >= globals["mapBounds"]["right"]:
+			if self.gs["mapBounds"]["right"] != None:
+				if box[1][0] >= self.gs["mapBounds"]["right"]:
 					if 2 in t:
 						return True
 
-			if globals["mapBounds"]["top"] != None:
-				if box[0][1] >= globals["mapBounds"]["top"]:
+			if self.gs["mapBounds"]["top"] != None:
+				if box[0][1] >= self.gs["mapBounds"]["top"]:
 					if 3 in t:
 						return True
 
@@ -694,15 +722,15 @@ class characterClass():
 
 		if specCam == None:
 			try:
-				cam = globals["objects"]["camera"][0]
+				cam = self.gs["objects"]["camera"][0]
 			except:
 				cam = cameraClass()
 		else:
 			cam = specCam
 
-		scaling = cam.getScaling(objDist=self.dist)*preferences["screenSizeScale"]
+		scaling = cam.getScaling(objDist=self.dist)*self.pf["screenSizeScale"]
 		
-		scrn = globals["screen"]
+		scrn = self.gs["screen"]
 
 		for pack in self.findYourSprite():
 
@@ -740,8 +768,8 @@ JaneDoePhysicsDict = {}
 
 class JaneDoeClass(characterClass):
 
-	def __init__(self, inID=0, inX=None, inY=None, inDist=0, costume=1):
-		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict, inPos=[inX, inY])
+	def __init__(self, inID=0, inX=None, inY=None, inDist=0, costume=1, gs=None, pf=None):
+		super().__init__(inID=inID, inPhysics=JaneDoePhysicsDict, inPos=[inX, inY], gs=gs, pf=pf)
 
 		# ID
 		self.objID += "_JaDo"
@@ -764,7 +792,7 @@ class JaneDoeClass(characterClass):
 
 		packs = []
 
-		if preferences["webMode"]:
+		if self.pf["webMode"]:
 
 			# body
 			image = pygame.surface.Surface((100, 200))
@@ -836,8 +864,7 @@ class JaneDoeClass(characterClass):
 
 		return boxes
 
-characterList["Jane Doe"] = JaneDoeClass
-characterPointPlace[0] = "Jane Doe"
+characterList[0] = JaneDoeClass
 #####################
 #     /Jane Doe     #
 #####################
@@ -1002,11 +1029,14 @@ def load_mainFight():
 		info = [
 			len(globals["objects"]["character"]),
 			i+1,
+			globals,
+			preferences,
 		]
 		try:
-			globals["objects"]["character"].append(characterList[characterPointPlace[playerChoices[i+1]]](inID=info[0], costume=info[1]))
-		except:
-			globals["objects"]["character"].append(characterList[characterPointPlace[0]](inID=info[0], costume=info[1]))
+			globals["objects"]["character"].append(characterList[0](inID=info[0], costume=info[1], gs=info[2],pf=info[3] ))
+		except IndexError:
+			# no character for the player's choice
+			globals["objects"]["character"].append(characterList[0](inID=info[0], costume=info[1], gs=info[2],pf=info[3] ))
 
 	for i in range(2):
 		globals["objects"]["character"][i].goToStart(placement=i)
